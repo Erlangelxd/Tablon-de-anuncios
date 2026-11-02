@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ anuncio.titulo }}{% endblock %}
+
+{% block contenido %}
+<section class="encabezado-pagina">
+    <div class="container py-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('anuncios.lista') }}">Anuncios</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Detalle</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<div class="container pb-5">
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <article class="card articulo-card">
+                <div class="card-body p-4 p-lg-5">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge categoria-badge">{{ anuncio.categoria.nombre }}</span>
+                        {% if anuncio.activo %}
+                        <span class="badge text-bg-success-subtle text-success-emphasis border border-success-subtle">Activo</span>
+                        {% else %}
+                        <span class="badge text-bg-secondary">Inactivo</span>
+                        {% endif %}
+                    </div>
+                    <h1 class="h2 fw-bold mb-3">{{ anuncio.titulo }}</h1>
+                    <div class="d-flex flex-wrap gap-4 text-secondary small border-bottom pb-4 mb-4">
+                        <span class="d-flex align-items-center gap-2">
+                            <span class="avatar-tabla">{{ anuncio.autor.iniciales }}</span>
+                            {{ anuncio.autor.nombre }}
+                        </span>
+                        <span><i class="bi bi-calendar3 me-1"></i>{{ anuncio.fecha_publicacion.strftime("%d/%m/%Y a las %H:%M") }}</span>
+                        <span><i class="bi bi-tag me-1"></i>{{ anuncio.categoria.nombre }}</span>
+                    </div>
+                    <div class="contenido-anuncio">{{ anuncio.contenido }}</div>
+                </div>
+            </article>
+        </div>
+        <div class="col-lg-4">
+            <div class="card formulario-card mb-4">
+                <div class="card-body p-4">
+                    <h2 class="h6 text-uppercase text-secondary fw-bold mb-3">Información</h2>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-secondary">Categoría</span>
+                            <span class="fw-semibold">{{ anuncio.categoria.nombre }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-secondary">Autor</span>
+                            <span class="fw-semibold">{{ anuncio.autor.username }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-secondary">Publicación</span>
+                            <span class="fw-semibold">{{ anuncio.fecha_publicacion.strftime("%d/%m/%Y") }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between py-2">
+                            <span class="text-secondary">Estado</span>
+                            <span class="fw-semibold">{% if anuncio.activo %}Activo{% else %}Inactivo{% endif %}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            {% if current_user.is_authenticated and (current_user.is_admin or anuncio.usuario_id == current_user.id) %}
+            <div class="card formulario-card">
+                <div class="card-body p-4 d-grid gap-2">
+                    <h2 class="h6 text-uppercase text-secondary fw-bold mb-1">Administración</h2>
+                    <a href="{{ url_for('anuncios.editar', anuncio_id=anuncio.id) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>Editar anuncio
+                    </a>
+                    <form method="post" action="{{ url_for('anuncios.cambiar_estado', anuncio_id=anuncio.id) }}">
+                        <button type="submit" class="btn btn-outline-warning w-100">
+                            {% if anuncio.activo %}
+                            <i class="bi bi-pause-circle me-2"></i>Desactivar
+                            {% else %}
+                            <i class="bi bi-play-circle me-2"></i>Activar
+                            {% endif %}
+                        </button>
+                    </form>
+                    <form method="post" action="{{ url_for('anuncios.eliminar', anuncio_id=anuncio.id) }}" onsubmit="return confirm('¿Eliminar definitivamente este anuncio?');">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-trash me-2"></i>Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <a href="{{ url_for('anuncios.lista') }}" class="btn btn-outline-secondary w-100 mt-4">
+                <i class="bi bi-arrow-left me-2"></i>Volver al tablón
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

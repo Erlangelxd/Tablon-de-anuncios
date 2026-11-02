@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block titulo %}Categorías{% endblock %}
+
+{% block contenido %}
+<section class="encabezado-pagina">
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Categorías</li>
+                    </ol>
+                </nav>
+                <h1 class="h2 fw-bold mb-1">Administración de categorías</h1>
+                <p class="text-secondary mb-0">Organiza los anuncios mediante categorías temáticas.</p>
+            </div>
+            <a href="{{ url_for('categorias.crear') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Nueva categoría
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="container pb-5">
+    {% if categorias %}
+    <div class="row g-4">
+        {% for categoria in categorias %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card categoria-card h-100">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                        <span class="icono-categoria"><i class="bi bi-tag"></i></span>
+                        <span class="badge rounded-pill text-bg-light border">{{ categoria.anuncios|length }} anuncio{% if categoria.anuncios|length != 1 %}s{% endif %}</span>
+                    </div>
+                    <h2 class="h5 fw-bold mb-2">{{ categoria.nombre }}</h2>
+                    <p class="text-secondary small flex-grow-1 mb-3">{{ categoria.descripcion or "Sin descripción registrada." }}</p>
+                    <div class="d-flex gap-2 border-top pt-3">
+                        <a href="{{ url_for('categorias.editar', categoria_id=categoria.id) }}" class="btn btn-sm btn-outline-secondary flex-grow-1">
+                            <i class="bi bi-pencil me-1"></i>Editar
+                        </a>
+                        <form method="post" action="{{ url_for('categorias.eliminar', categoria_id=categoria.id) }}" class="flex-grow-1" onsubmit="return confirm('¿Eliminar la categoría {{ categoria.nombre }}?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger w-100" {% if categoria.anuncios %}disabled title="Tiene anuncios asociados"{% endif %}>
+                                <i class="bi bi-trash me-1"></i>Eliminar
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="estado-vacio text-center">
+        <span class="icono-vacio"><i class="bi bi-tags"></i></span>
+        <h2 class="h4 mt-3">No hay categorías registradas</h2>
+        <p class="text-secondary mb-3">Crea la primera categoría para organizar los anuncios del tablón.</p>
+        <a href="{{ url_for('categorias.crear') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Nueva categoría
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

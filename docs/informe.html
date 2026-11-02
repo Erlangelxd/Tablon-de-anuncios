@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Actividad N.º 4 - Tablón de Anuncios con Flask</title>
+<style>
+    @page {
+        size: A4;
+        margin: 17mm 16mm 16mm;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html, body {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+        font-size: 10.3pt;
+        line-height: 1.55;
+        color: #24344d;
+        background: #fff;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .portada {
+        height: 258mm;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        page-break-after: always;
+        background: linear-gradient(145deg, #081a31 0%, #0b1f3a 45%, #1d4e89 100%);
+        color: #fff;
+        padding: 22mm 18mm;
+        border-radius: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .portada::before {
+        content: "";
+        position: absolute;
+        width: 120mm;
+        height: 120mm;
+        border-radius: 50%;
+        top: -45mm;
+        right: -35mm;
+        background: radial-gradient(circle, rgba(240, 165, 0, 0.3), transparent 68%);
+    }
+
+    .portada::after {
+        content: "";
+        position: absolute;
+        width: 100mm;
+        height: 100mm;
+        border-radius: 50%;
+        bottom: -40mm;
+        left: -30mm;
+        background: radial-gradient(circle, rgba(96, 165, 250, 0.25), transparent 68%);
+    }
+
+    .portada > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    .logo-portada {
+        width: 22mm;
+        height: 22mm;
+        display: grid;
+        place-items: center;
+        border-radius: 5mm;
+        background: linear-gradient(135deg, #ffd166, #f0a500);
+        color: #0b1f3a;
+        font-size: 19pt;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        margin-bottom: 13mm;
+    }
+
+    .etiqueta {
+        display: inline-block;
+        padding: 1.5mm 4mm;
+        border: 1px solid rgba(240, 165, 0, 0.55);
+        background: rgba(240, 165, 0, 0.13);
+        border-radius: 999px;
+        color: #ffd166;
+        font-size: 8.6pt;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        margin-bottom: 7mm;
+    }
+
+    .portada h1 {
+        font-size: 30pt;
+        line-height: 1.14;
+        margin: 0 0 6mm;
+        max-width: 160mm;
+        color: #fff;
+    }
+
+    .portada .subtitulo {
+        font-size: 12.5pt;
+        color: rgba(255, 255, 255, 0.72);
+        max-width: 145mm;
+        margin: 0 0 20mm;
+    }
+
+    .portada .datos {
+        border-top: 1px solid rgba(255, 255, 255, 0.22);
+        padding-top: 7mm;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4mm 10mm;
+        font-size: 9.4pt;
+    }
+
+    .portada .datos span {
+        display: block;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 7.8pt;
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+        margin-bottom: 1mm;
+    }
+
+    .portada .datos strong {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    h1, h2, h3 {
+        color: #12325a;
+    }
+
+    h1.seccion {
+        font-size: 18pt;
+        margin: 0 0 4mm;
+        padding-bottom: 2.5mm;
+        border-bottom: 2px solid #e3e9f2;
+        page-break-after: avoid;
+    }
+
+    h1.seccion .numero {
+        color: #f0a500;
+        margin-right: 2mm;
+    }
+
+    h2 {
+        font-size: 12.5pt;
+        margin: 6mm 0 2.5mm;
+        page-break-after: avoid;
+    }
+
+    h3 {
+        font-size: 10.8pt;
+        margin: 4mm 0 2mm;
+        page-break-after: avoid;
+    }
+
+    p {
+        margin: 0 0 3mm;
+        text-align: justify;
+    }
+
+    ul, ol {
+        margin: 0 0 3mm;
+        padding-left: 5.5mm;
+    }
+
+    li {
+        margin-bottom: 1.2mm;
+    }
+
+    .indice {
+        background: #f6f9fd;
+        border: 1px solid #e3e9f2;
+        border-radius: 3mm;
+        padding: 5mm 7mm;
+        margin: 5mm 0 7mm;
+    }
+
+    .indice ol {
+        columns: 2;
+        column-gap: 12mm;
+        margin: 0;
+        padding-left: 5mm;
+    }
+
+    .indice li {
+        margin-bottom: 1.8mm;
+        break-inside: avoid;
+    }
+
+    .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 3.5mm;
+        margin: 4mm 0 5mm;
+    }
+
+    .meta-card {
+        border: 1px solid #e3e9f2;
+        border-radius: 2.5mm;
+        padding: 3.5mm;
+        background: #fbfcfe;
+    }
+
+    .meta-card strong {
+        display: block;
+        color: #1d4e89;
+        font-size: 14pt;
+        line-height: 1.1;
+        margin-bottom: 1mm;
+    }
+
+    .meta-card span {
+        font-size: 8.5pt;
+        color: #5b6b82;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2mm 0 5mm;
+        font-size: 8.9pt;
+    }
+
+    th {
+        background: #12325a;
+        color: #fff;
+        text-align: left;
+        padding: 2.3mm 2.6mm;
+        font-size: 8.1pt;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    td {
+        border-bottom: 1px solid #e6ecf4;
+        padding: 2.1mm 2.6mm;
+        vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) {
+        background: #f8fafd;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+
+    code {
+        font-family: "DejaVu Sans Mono", Consolas, monospace;
+        font-size: 8.6pt;
+        background: #eef3f9;
+        color: #12325a;
+        padding: 0.3mm 1.2mm;
+        border-radius: 1mm;
+    }
+
+    pre {
+        background: #0b1f3a;
+        color: #d8e6f5;
+        border-radius: 2.5mm;
+        padding: 4.5mm 5mm;
+        font-family: "DejaVu Sans Mono", Consolas, monospace;
+        font-size: 8.2pt;
+        line-height: 1.45;
+        overflow: hidden;
+        margin: 2mm 0 5mm;
+        page-break-inside: avoid;
+    }
+
+    .flujo {
+        display: flex;
+        align-items: stretch;
+        gap: 2mm;
+        margin: 4mm 0 5mm;
+        page-break-inside: avoid;
+    }
+
+    .flujo .paso {
+        flex: 1;
+        border: 1px solid #dbe5f1;
+        border-radius: 2.5mm;
+        background: #f8fafd;
+        padding: 3mm 2.2mm;
+        text-align: center;
+    }
+
+    .flujo .paso strong {
+        display: block;
+        font-size: 8.8pt;
+        color: #12325a;
+        margin-bottom: 1mm;
+    }
+
+    .flujo .paso span {
+        font-size: 7.6pt;
+        color: #5b6b82;
+    }
+
+    .flujo .flecha {
+        align-self: center;
+        color: #f0a500;
+        font-size: 14pt;
+        font-weight: 700;
+    }
+
+    .er {
+        display: grid;
+        grid-template-columns: 1fr 17mm 1.15fr 17mm 1fr;
+        align-items: start;
+        gap: 0;
+        margin: 4mm 0 6mm;
+        page-break-inside: avoid;
+    }
+
+    .entidad {
+        border: 1px solid #cddcee;
+        border-radius: 2.5mm;
+        overflow: hidden;
+        background: #fff;
+        page-break-inside: avoid;
+    }
+
+    .entidad .titulo {
+        background: #12325a;
+        color: #fff;
+        padding: 2.4mm 3mm;
+        font-size: 9pt;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+    }
+
+    .entidad.central .titulo {
+        background: #1d4e89;
+    }
+
+    .entidad ul {
+        list-style: none;
+        margin: 0;
+        padding: 2mm 0;
+    }
+
+    .entidad li {
+        margin: 0;
+        padding: 0.9mm 3mm;
+        font-size: 7.9pt;
+        border-bottom: 1px solid #f0f4f9;
+    }
+
+    .entidad li:last-child {
+        border-bottom: 0;
+    }
+
+    .entidad li b {
+        color: #12325a;
+    }
+
+    .entidad li .tipo {
+        color: #7a8799;
+        font-size: 7pt;
+    }
+
+    .relacion {
+        text-align: center;
+        font-size: 7.5pt;
+        color: #5b6b82;
+        line-height: 1.35;
+        padding-top: 14mm;
+    }
+
+    .relacion .linea {
+        display: block;
+        color: #f0a500;
+        font-size: 14pt;
+        line-height: 1;
+        margin-bottom: 1mm;
+    }
+
+    .nota {
+        border-left: 3px solid #f0a500;
+        background: #fdf8ec;
+        padding: 3mm 4mm;
+        border-radius: 0 2mm 2mm 0;
+        font-size: 9pt;
+        color: #5a4a20;
+        margin: 3mm 0 5mm;
+    }
+
+    .figura {
+        width: 82%;
+        margin: 0 auto 5mm;
+        page-break-inside: avoid;
+        border: 1px solid #dbe5f1;
+        border-radius: 2.5mm;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .figura img {
+        width: 100%;
+        display: block;
+    }
+
+    .figura figcaption {
+        padding: 2.2mm 3mm;
+        background: #f6f9fd;
+        border-top: 1px solid #e6ecf4;
+        font-size: 8.4pt;
+        color: #4c5f78;
+    }
+
+    .figura figcaption b {
+        color: #12325a;
+    }
+
+    .dos-columnas {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5mm;
+    }
+
+    .evitar-corte {
+        page-break-inside: avoid;
+    }
+
+    .salto-pagina {
+        page-break-before: always;
+    }
+
+    .pie-documento {
+        margin-top: 8mm;
+        padding-top: 4mm;
+        border-top: 1px solid #e3e9f2;
+        font-size: 8pt;
+        color: #8390a3;
+        text-align: center;
+    }
+
+    .checklist li::marker {
+        color: #1d4e89;
+    }
+</style>
+</head>
+<body>
+
+<section class="portada">
+    <div class="logo-portada">TA</div>
+    <span class="etiqueta">Actividad N.º 4</span>
+    <h1>Aplicación web: Tablón de Anuncios con Flask</h1>
+    <p class="subtitulo">Desarrollo de una aplicación modular con Application Factory, Blueprints, base de datos SQLite e interfaz responsive con Bootstrap.</p>
+    <div class="datos">
+        <div><span>Materia</span><strong>Emergentes II</strong></div>
+        <div><span>Docente</span><strong>M. Sc. Mario Tórrez C.</strong></div>
+        <div><span>Estudiante</span><strong>____________________________</strong></div>
+        <div><span>Repositorio GitHub</span><strong>____________________________</strong></div>
+        <div><span>Tecnologías</span><strong>Flask · SQLite · Bootstrap 5</strong></div>
+        <div><span>Fecha</span><strong>Noviembre de 2026</strong></div>
+    </div>
+</section>
+
+<h1 class="seccion"><span class="numero">01</span>Presentación del proyecto</h1>
+
+<div class="indice">
+    <ol>
+        <li>Presentación del proyecto</li>
+        <li>Tecnologías utilizadas</li>
+        <li>Arquitectura de la aplicación</li>
+        <li>Diseño de la base de datos</li>
+        <li>Estructura del proyecto</li>
+        <li>Requerimientos implementados</li>
+        <li>Capturas de pantalla</li>
+        <li>Rutas de la aplicación</li>
+        <li>Seguridad y reglas de negocio</li>
+        <li>Instalación y ejecución</li>
+        <li>Conclusiones</li>
+    </ol>
+</div>
+
+<p>El presente documento describe la implementación de una aplicación web para gestionar un tablón de anuncios institucional. El sistema permite autenticar usuarios, administrar cuentas y categorías, y publicar anuncios asociados a un autor y a una categoría determinada.</p>
+
+<p>La solución fue construida con el framework Flask bajo el patrón de diseño <b>Application Factory</b>. La función <code>create_app()</code> centraliza la configuración y el registro de extensiones, mientras que las rutas se organizan en Blueprints independientes para autenticación, página principal, usuarios, categorías y anuncios. La persistencia se realiza en una base de datos SQLite denominada <code>bd_anuncios</code>.</p>
+
+<div class="meta-grid">
+    <div class="meta-card"><strong>3</strong><span>Entidades principales: usuarios, categorías y anuncios.</span></div>
+    <div class="meta-card"><strong>5</strong><span>Blueprints: main, auth, usuarios, categorías y anuncios.</span></div>
+    <div class="meta-card"><strong>CRUD</strong><span>Completo para las tres entidades del sistema.</span></div>
+</div>
+
+<h2>Objetivo general</h2>
+<p>Desarrollar una aplicación web modular que permita gestionar un tablón de anuncios, aplicando autenticación, operaciones CRUD, relaciones entre entidades y una interfaz de usuario construida con un framework CSS.</p>
+
+<h2>Objetivos específicos</h2>
+<ul>
+    <li>Diseñar e implementar la base de datos relacional <code>bd_anuncios</code> con claves primarias, claves foráneas y relaciones.</li>
+    <li>Implementar el inicio de sesión y el registro de usuarios con contraseñas almacenadas mediante hash.</li>
+    <li>Construir una interfaz común con cabecera institucional, menú de navegación, área de contenido y pie de página.</li>
+    <li>Implementar el registro, consulta, modificación y eliminación de usuarios, categorías y anuncios.</li>
+    <li>Aplicar el patrón Application Factory y organizar las rutas mediante Blueprints.</li>
+</ul>
+
+<h1 class="seccion salto-pagina"><span class="numero">02</span>Tecnologías utilizadas</h1>
+
+<table>
+    <thead>
+        <tr><th style="width:26%">Componente</th><th style="width:30%">Tecnología</th><th>Uso dentro del proyecto</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>Lenguaje</td><td>Python 3.11+</td><td>Desarrollo de la lógica del servidor y de los modelos de datos.</td></tr>
+        <tr><td>Framework web</td><td>Flask 3.1</td><td>Enrutamiento, plantillas Jinja, sesiones y aplicación del patrón Application Factory.</td></tr>
+        <tr><td>Base de datos</td><td>SQLite</td><td>Almacenamiento relacional local en el archivo <code>instance/bd_anuncios.db</code>.</td></tr>
+        <tr><td>ORM</td><td>Flask-SQLAlchemy 3.1</td><td>Definición de modelos, relaciones, consultas y creación de tablas.</td></tr>
+        <tr><td>Autenticación</td><td>Flask-Login</td><td>Gestión de sesiones, usuario actual y protección de rutas.</td></tr>
+        <tr><td>Seguridad</td><td>Werkzeug Security</td><td>Generación y verificación de hashes de contraseñas.</td></tr>
+        <tr><td>Interfaz</td><td>Bootstrap 5.3</td><td>Grillas responsive, componentes, formularios, tablas, alertas y navegación.</td></tr>
+        <tr><td>Iconografía</td><td>Bootstrap Icons</td><td>Iconos de apoyo en menús, botones, tarjetas y estados.</td></tr>
+        <tr><td>Servidor de desarrollo</td><td>Werkzeug</td><td>Ejecución local de la aplicación con recarga automática.</td></tr>
+    </tbody>
+</table>
+
+<h2>Organización del código</h2>
+<p>La aplicación se divide en capas: configuración (<code>config.py</code>), fábrica de la aplicación (<code>app/__init__.py</code>), extensiones compartidas (<code>app/extensions.py</code>), modelos de datos (<code>app/models.py</code>), reglas de acceso (<code>app/decorators.py</code>), Blueprints con las rutas y una carpeta de plantillas y recursos estáticos.</p>
+
+<h1 class="seccion"><span class="numero">03</span>Arquitectura de la aplicación</h1>
+
+<p>El patrón <b>Application Factory</b> encapsula la creación de la aplicación en la función <code>create_app()</code>. Esta función carga la configuración, inicializa las extensiones, registra los Blueprints, configura el cargador de usuarios, registra manejadores de errores y expone el comando <code>flask init-db</code> para inicializar la base de datos.</p>
+
+<div class="flujo">
+    <div class="paso"><strong>Petición HTTP</strong><span>Navegador del usuario</span></div>
+    <div class="flecha">→</div>
+    <div class="paso"><strong>create_app()</strong><span>Configuración y extensiones</span></div>
+    <div class="flecha">→</div>
+    <div class="paso"><strong>Blueprint</strong><span>Ruta y validaciones</span></div>
+    <div class="flecha">→</div>
+    <div class="paso"><strong>Modelos ORM</strong><span>SQLAlchemy</span></div>
+    <div class="flecha">→</div>
+    <div class="paso"><strong>SQLite</strong><span>bd_anuncios</span></div>
+</div>
+
+<h2>Responsabilidades de los módulos</h2>
+<table>
+    <thead>
+        <tr><th style="width:34%">Archivo o módulo</th><th>Responsabilidad</th></tr>
+    </thead>
+    <tbody>
+        <tr><td><code>app/__init__.py</code></td><td>Define <code>create_app()</code>, registra Blueprints, extensiones, manejadores de error y el comando de inicialización.</td></tr>
+        <tr><td><code>app/extensions.py</code></td><td>Instancia <code>SQLAlchemy</code> y <code>LoginManager</code> sin asociarlos todavía a una aplicación concreta.</td></tr>
+        <tr><td><code>app/models.py</code></td><td>Define los modelos <code>Usuario</code>, <code>Categoria</code> y <code>Anuncio</code>, junto con sus relaciones y métodos de seguridad.</td></tr>
+        <tr><td><code>app/decorators.py</code></td><td>Implementa <code>admin_required</code> y la verificación de propietario o administrador.</td></tr>
+        <tr><td><code>app/blueprints/auth</code></td><td>Inicio de sesión, registro público y cierre de sesión.</td></tr>
+        <tr><td><code>app/blueprints/main</code></td><td>Página principal, estadísticas, búsqueda y últimos anuncios.</td></tr>
+        <tr><td><code>app/blueprints/usuarios</code></td><td>CRUD de usuarios protegido para administradores.</td></tr>
+        <tr><td><code>app/blueprints/categorias</code></td><td>CRUD de categorías protegido para administradores.</td></tr>
+        <tr><td><code>app/blueprints/anuncios</code></td><td>CRUD de anuncios, filtros, paginación y cambio de estado.</td></tr>
+        <tr><td><code>app/templates</code></td><td>Plantillas Jinja con herencia desde <code>base.html</code>.</td></tr>
+        <tr><td><code>app/static/css/estilos.css</code></td><td>Identidad visual, componentes personalizados y ajustes responsive.</td></tr>
+    </tbody>
+</table>
+
+<h2>Herencia de plantillas</h2>
+<p>Todas las páginas heredan de <code>base.html</code>, que define la cabecera institucional, el menú de navegación, el bloque de mensajes flash, el área de contenido y el pie de página. Las vistas particulares sobrescriben los bloques <code>titulo</code>, <code>contenido</code> y <code>scripts</code>.</p>
+
+<h1 class="seccion salto-pagina"><span class="numero">04</span>Diseño de la base de datos</h1>
+
+<p>La base de datos <code>bd_anuncios</code> está compuesta por tres tablas relacionadas. Un usuario puede publicar muchos anuncios y una categoría puede agrupar muchos anuncios. Cada anuncio pertenece obligatoriamente a un usuario y a una categoría.</p>
+
+<div class="er">
+    <div class="entidad">
+        <div class="titulo">USUARIOS</div>
+        <ul>
+            <li><b>id</b> <span class="tipo">INTEGER · PK</span></li>
+            <li><b>nombre</b> <span class="tipo">VARCHAR(100)</span></li>
+            <li><b>username</b> <span class="tipo">VARCHAR(50) · UK</span></li>
+            <li><b>email</b> <span class="tipo">VARCHAR(120) · UK</span></li>
+            <li><b>password_hash</b> <span class="tipo">VARCHAR(255)</span></li>
+            <li><b>rol</b> <span class="tipo">VARCHAR(20)</span></li>
+            <li><b>fecha_registro</b> <span class="tipo">DATETIME</span></li>
+        </ul>
+    </div>
+    <div class="relacion">
+        <span class="linea">──▶</span>
+        1 : N<br>publica
+    </div>
+    <div class="entidad central">
+        <div class="titulo">ANUNCIOS</div>
+        <ul>
+            <li><b>id</b> <span class="tipo">INTEGER · PK</span></li>
+            <li><b>titulo</b> <span class="tipo">VARCHAR(150)</span></li>
+            <li><b>contenido</b> <span class="tipo">TEXT</span></li>
+            <li><b>activo</b> <span class="tipo">BOOLEAN</span></li>
+            <li><b>fecha_publicacion</b> <span class="tipo">DATETIME</span></li>
+            <li><b>usuario_id</b> <span class="tipo">INTEGER · FK</span></li>
+            <li><b>categoria_id</b> <span class="tipo">INTEGER · FK</span></li>
+        </ul>
+    </div>
+    <div class="relacion">
+        <span class="linea">◀──</span>
+        1 : N<br>agrupa
+    </div>
+    <div class="entidad">
+        <div class="titulo">CATEGORIAS</div>
+        <ul>
+            <li><b>id</b> <span class="tipo">INTEGER · PK</span></li>
+            <li><b>nombre</b> <span class="tipo">VARCHAR(80) · UK</span></li>
+            <li><b>descripcion</b> <span class="tipo">VARCHAR(255)</span></li>
+            <li><b>fecha_creacion</b> <span class="tipo">DATETIME</span></li>
+        </ul>
+    </div>
+</div>
+
+<h2>Descripción de las tablas</h2>
+
+<h3>Tabla usuarios</h3>
+<table>
+    <thead><tr><th style="width:24%">Columna</th><th style="width:24%">Tipo</th><th style="width:22%">Restricción</th><th>Descripción</th></tr></thead>
+    <tbody>
+        <tr><td>id</td><td>INTEGER</td><td>PK, autoincremental</td><td>Identificador único del usuario.</td></tr>
+        <tr><td>nombre</td><td>VARCHAR(100)</td><td>NOT NULL</td><td>Nombre completo de la persona.</td></tr>
+        <tr><td>username</td><td>VARCHAR(50)</td><td>NOT NULL, UNIQUE</td><td>Nombre de usuario para iniciar sesión.</td></tr>
+        <tr><td>email</td><td>VARCHAR(120)</td><td>NOT NULL, UNIQUE</td><td>Correo electrónico de contacto.</td></tr>
+        <tr><td>password_hash</td><td>VARCHAR(255)</td><td>NOT NULL</td><td>Hash de la contraseña; nunca se almacena texto plano.</td></tr>
+        <tr><td>rol</td><td>VARCHAR(20)</td><td>NOT NULL, default "usuario"</td><td>Rol <code>admin</code> o <code>usuario</code>.</td></tr>
+        <tr><td>fecha_registro</td><td>DATETIME</td><td>NOT NULL</td><td>Fecha y hora de creación de la cuenta.</td></tr>
+    </tbody>
+</table>
+
+<h3>Tabla categorias</h3>
+<table>
+    <thead><tr><th style="width:24%">Columna</th><th style="width:24%">Tipo</th><th style="width:22%">Restricción</th><th>Descripción</th></tr></thead>
+    <tbody>
+        <tr><td>id</td><td>INTEGER</td><td>PK, autoincremental</td><td>Identificador único de la categoría.</td></tr>
+        <tr><td>nombre</td><td>VARCHAR(80)</td><td>NOT NULL, UNIQUE</td><td>Nombre temático de la categoría.</td></tr>
+        <tr><td>descripcion</td><td>VARCHAR(255)</td><td>NULL</td><td>Descripción del tipo de anuncios que agrupa.</td></tr>
+        <tr><td>fecha_creacion</td><td>DATETIME</td><td>NOT NULL</td><td>Fecha y hora de registro.</td></tr>
+    </tbody>
+</table>
+
+<h3>Tabla anuncios</h3>
+<table>
+    <thead><tr><th style="width:24%">Columna</th><th style="width:24%">Tipo</th><th style="width:22%">Restricción</th><th>Descripción</th></tr></thead>
+    <tbody>
+        <tr><td>id</td><td>INTEGER</td><td>PK, autoincremental</td><td>Identificador único del anuncio.</td></tr>
+        <tr><td>titulo</td><td>VARCHAR(150)</td><td>NOT NULL</td><td>Título descriptivo del comunicado.</td></tr>
+        <tr><td>contenido</td><td>TEXT</td><td>NOT NULL</td><td>Cuerpo completo del anuncio.</td></tr>
+        <tr><td>activo</td><td>BOOLEAN</td><td>NOT NULL, default true</td><td>Determina si el anuncio es visible al público.</td></tr>
+        <tr><td>fecha_publicacion</td><td>DATETIME</td><td>NOT NULL</td><td>Fecha y hora de publicación.</td></tr>
+        <tr><td>usuario_id</td><td>INTEGER</td><td>FK → usuarios.id</td><td>Autor del anuncio.</td></tr>
+        <tr><td>categoria_id</td><td>INTEGER</td><td>FK → categorias.id</td><td>Categoría a la que pertenece el anuncio.</td></tr>
+    </tbody>
+</table>
+
+<div class="nota">
+    <b>Integridad referencial:</b> la aplicación impide eliminar un usuario o una categoría que tenga anuncios asociados. De esta forma se evita dejar registros huérfanos y se conserva la trazabilidad de cada publicación.
+</div>
+
+<h1 class="seccion salto-pagina"><span class="numero">05</span>Estructura del proyecto</h1>
+
+<pre>Tablon de anuncios/
+├── app/
+│   ├── __init__.py
+│   ├── decorators.py
+│   ├── extensions.py
+│   ├── models.py
+│   ├── blueprints/
+│   │   ├── auth/
+│   │   ├── main/
+│   │   ├── usuarios/
+│   │   ├── categorias/
+│   │   └── anuncios/
+│   ├── static/
+│   │   └── css/estilos.css
+│   └── templates/
+│       ├── auth/
+│       ├── usuarios/
+│       ├── categorias/
+│       ├── anuncios/
+│       ├── errores/
+│       └── base.html
+├── database/schema.sql
+├── docs/
+│   └── capturas/
+├── instance/bd_anuncios.db
+├── config.py
+├── run.py
+├── requirements.txt
+└── .flaskenv</pre>
+
+<p>La carpeta <code>instance</code> almacena la base de datos y no se versiona. El archivo <code>database/schema.sql</code> contiene el script DDL equivalente a los modelos, útil para documentar o recrear la estructura.</p>
+
+<h1 class="seccion"><span class="numero">06</span>Requerimientos implementados</h1>
+
+<table>
+    <thead>
+        <tr><th style="width:7%">N.º</th><th style="width:31%">Requerimiento</th><th>Implementación</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>1</td><td>Base de datos <code>bd_anuncios</code></td><td>Tres tablas relacionadas con claves primarias y foráneas, definidas con SQLAlchemy y documentadas en <code>schema.sql</code>.</td></tr>
+        <tr><td>2</td><td>Autenticación</td><td>Formulario de inicio de sesión, verificación de hash, manejo de sesión con Flask-Login y cierre de sesión.</td></tr>
+        <tr><td>3</td><td>Página principal</td><td>Plantilla base con cabecera institucional, navegación, contenido y pie comunes; página de inicio con buscador y estadísticas.</td></tr>
+        <tr><td>4</td><td>Administración de usuarios</td><td>Listado con búsqueda, registro, edición, cambio de contraseña y eliminación protegida.</td></tr>
+        <tr><td>5</td><td>Administración de categorías</td><td>Listado en tarjetas, registro, edición y eliminación con validación de anuncios asociados.</td></tr>
+        <tr><td>6</td><td>Administración de anuncios</td><td>CRUD completo, asociación con categoría y autor, activación/desactivación, filtros y paginación.</td></tr>
+        <tr><td>7</td><td>Application Factory y Blueprints</td><td><code>create_app()</code> registra cinco Blueprints y mantiene separadas las responsabilidades por módulo.</td></tr>
+    </tbody>
+</table>
+
+<h2>Funcionalidades adicionales</h2>
+<ul class="checklist">
+    <li>Búsqueda de anuncios por título o contenido.</li>
+    <li>Filtros por categoría y por estado (activos, inactivos o todos).</li>
+    <li>Paginación de resultados conservando los filtros aplicados.</li>
+    <li>Estadísticas de anuncios, categorías y usuarios en la página principal.</li>
+    <li>Anuncios inactivos ocultos al público y visibles solo para su autor o un administrador.</li>
+    <li>Validación de unicidad de usuarios, correos y categorías.</li>
+    <li>Mensajes flash para confirmar operaciones y mostrar errores.</li>
+    <li>Páginas personalizadas para errores 403 y 404.</li>
+    <li>Diseño responsive adaptado a computadora, tableta y teléfono.</li>
+</ul>
+
+<h1 class="seccion salto-pagina"><span class="numero">07</span>Capturas de pantalla</h1>
+
+<p>Las siguientes capturas fueron obtenidas con la base de datos de demostración cargada mediante el comando <code>flask init-db</code>.</p>
+
+<figure class="figura">
+    <img src="capturas/01_inicio.png" alt="Página principal">
+    <figcaption><b>Figura 1.</b> Página principal con cabecera institucional, menú de navegación, buscador, estadísticas y últimos anuncios.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/02_inicio_sesion.png" alt="Inicio de sesión">
+    <figcaption><b>Figura 2.</b> Formulario de inicio de sesión con validación de credenciales y credenciales de demostración.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/08_registro.png" alt="Registro de usuario">
+    <figcaption><b>Figura 3.</b> Registro público de usuarios; las cuentas creadas reciben el rol <code>usuario</code>.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/03_listado_anuncios.png" alt="Listado de anuncios">
+    <figcaption><b>Figura 4.</b> Listado de anuncios con búsqueda, filtro por categoría, estado, paginación y acciones según permisos.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/07_detalle_anuncio.png" alt="Detalle del anuncio">
+    <figcaption><b>Figura 5.</b> Detalle del anuncio con categoría, autor, fecha, contenido y panel de administración.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/06_nuevo_anuncio.png" alt="Publicación de anuncio">
+    <figcaption><b>Figura 6.</b> Formulario de publicación de anuncio con título, contenido, categoría y estado.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/04_usuarios.png" alt="Administración de usuarios">
+    <figcaption><b>Figura 7.</b> Administración de usuarios con búsqueda, rol, cantidad de anuncios y acciones de edición y eliminación.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/09_formulario_usuario.png" alt="Formulario de usuario">
+    <figcaption><b>Figura 8.</b> Formulario de registro y edición de usuario; la contraseña es opcional al modificar una cuenta.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/05_categorias.png" alt="Administración de categorías">
+    <figcaption><b>Figura 9.</b> Administración de categorías en tarjetas, con cantidad de anuncios y acciones CRUD.</figcaption>
+</figure>
+
+<figure class="figura">
+    <img src="capturas/10_formulario_categoria.png" alt="Formulario de categoría">
+    <figcaption><b>Figura 10.</b> Formulario de registro y edición de categorías con validación de nombre único.</figcaption>
+</figure>
+
+<h1 class="seccion salto-pagina"><span class="numero">08</span>Rutas de la aplicación</h1>
+
+<table>
+    <thead>
+        <tr><th style="width:10%">Método</th><th style="width:35%">Ruta</th><th style="width:23%">Acceso</th><th>Descripción</th></tr>
+    </thead>
+    <tbody>
+        <tr><td>GET</td><td><code>/</code></td><td>Público</td><td>Página principal y buscador.</td></tr>
+        <tr><td>GET/POST</td><td><code>/auth/login</code></td><td>Público</td><td>Inicio de sesión.</td></tr>
+        <tr><td>GET/POST</td><td><code>/auth/registro</code></td><td>Público</td><td>Registro de nuevos usuarios.</td></tr>
+        <tr><td>GET</td><td><code>/auth/logout</code></td><td>Autenticado</td><td>Cierre de sesión.</td></tr>
+        <tr><td>GET</td><td><code>/anuncios/</code></td><td>Público</td><td>Listado, búsqueda y filtros.</td></tr>
+        <tr><td>GET</td><td><code>/anuncios/&lt;id&gt;</code></td><td>Público</td><td>Detalle del anuncio.</td></tr>
+        <tr><td>GET/POST</td><td><code>/anuncios/nuevo</code></td><td>Autenticado</td><td>Publicación de anuncios.</td></tr>
+        <tr><td>GET/POST</td><td><code>/anuncios/&lt;id&gt;/editar</code></td><td>Autor o admin</td><td>Edición del anuncio.</td></tr>
+        <tr><td>POST</td><td><code>/anuncios/&lt;id&gt;/estado</code></td><td>Autor o admin</td><td>Activación o desactivación.</td></tr>
+        <tr><td>POST</td><td><code>/anuncios/&lt;id&gt;/eliminar</code></td><td>Autor o admin</td><td>Eliminación del anuncio.</td></tr>
+        <tr><td>GET</td><td><code>/categorias/</code></td><td>Administrador</td><td>Listado de categorías.</td></tr>
+        <tr><td>GET/POST</td><td><code>/categorias/nueva</code></td><td>Administrador</td><td>Registro de categorías.</td></tr>
+        <tr><td>GET/POST</td><td><code>/categorias/&lt;id&gt;/editar</code></td><td>Administrador</td><td>Edición de categorías.</td></tr>
+        <tr><td>POST</td><td><code>/categorias/&lt;id&gt;/eliminar</code></td><td>Administrador</td><td>Eliminación de categorías.</td></tr>
+        <tr><td>GET</td><td><code>/usuarios/</code></td><td>Administrador</td><td>Listado y búsqueda de usuarios.</td></tr>
+        <tr><td>GET/POST</td><td><code>/usuarios/nuevo</code></td><td>Administrador</td><td>Registro de usuarios.</td></tr>
+        <tr><td>GET/POST</td><td><code>/usuarios/&lt;id&gt;/editar</code></td><td>Administrador</td><td>Edición de usuarios.</td></tr>
+        <tr><td>POST</td><td><code>/usuarios/&lt;id&gt;/eliminar</code></td><td>Administrador</td><td>Eliminación de usuarios.</td></tr>
+    </tbody>
+</table>
+
+<h1 class="seccion"><span class="numero">09</span>Seguridad y reglas de negocio</h1>
+
+<h2>Seguridad implementada</h2>
+<ul>
+    <li>Las contraseñas se almacenan con <code>generate_password_hash()</code> y se verifican con <code>check_password_hash()</code>.</li>
+    <li>Las rutas privadas utilizan <code>@login_required</code> y los módulos administrativos emplean un decorador <code>@admin_required</code>.</li>
+    <li>La edición y eliminación de anuncios verifica que el usuario sea el autor o tenga rol de administrador.</li>
+    <li>El parámetro <code>next</code> del inicio de sesión se valida para aceptar únicamente rutas internas y evitar redirecciones externas.</li>
+    <li>Las plantillas Jinja escapan automáticamente el contenido ingresado por los usuarios.</li>
+    <li>Las consultas se realizan mediante el ORM, lo que evita la construcción manual de SQL y reduce el riesgo de inyección.</li>
+</ul>
+
+<h2>Reglas de negocio</h2>
+<ul>
+    <li>Solo el administrador puede gestionar usuarios y categorías.</li>
+    <li>Cualquier usuario autenticado puede publicar anuncios.</li>
+    <li>Un usuario no puede eliminarse a sí mismo ni quitarse el rol de administrador.</li>
+    <li>No se eliminan usuarios ni categorías con anuncios asociados.</li>
+    <li>Los anuncios inactivos no se muestran al público.</li>
+    <li>Los nombres de usuario, correos y categorías deben ser únicos.</li>
+</ul>
+
+<h1 class="seccion"><span class="numero">10</span>Instalación y ejecución</h1>
+
+<pre>cd "Tablon de anuncios"
+
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+flask init-db
+flask run</pre>
+
+<p>La aplicación queda disponible en <code>http://127.0.0.1:5000</code>. El comando <code>flask init-db</code> crea las tablas, el usuario administrador, cinco categorías y tres anuncios de demostración.</p>
+
+<h2>Credenciales de prueba</h2>
+<table>
+    <thead><tr><th>Rol</th><th>Usuario</th><th>Contraseña</th></tr></thead>
+    <tbody>
+        <tr><td>Administrador</td><td><code>admin</code></td><td><code>admin123</code></td></tr>
+        <tr><td>Usuario</td><td>Registro público</td><td>Definida por el usuario</td></tr>
+    </tbody>
+</table>
+
+<div class="evitar-corte">
+<h1 class="seccion"><span class="numero">11</span>Conclusiones</h1>
+
+<p>La aplicación cumple con los requerimientos de la actividad: implementa una base de datos relacional SQLite con tres entidades y sus relaciones, autenticación de usuarios, una interfaz común basada en Bootstrap y operaciones CRUD completas para usuarios, categorías y anuncios.</p>
+
+<p>El uso del patrón Application Factory permitió separar la configuración de la creación de la aplicación, facilitando las pruebas y la incorporación de nuevas extensiones. La organización mediante Blueprints mantuvo las rutas agrupadas por dominio y redujo el acoplamiento entre módulos. Asimismo, la herencia de plantillas y la hoja de estilos personalizada proporcionaron una experiencia visual coherente y adaptable a distintos tamaños de pantalla.</p>
+
+<p>Como trabajo futuro se pueden incorporar pruebas automatizadas con pytest, protección CSRF en los formularios, carga de imágenes para los anuncios, notificaciones por correo y un panel de reportes con estadísticas de publicación.</p>
+</div>
+
+<div class="pie-documento">
+    Actividad N.º 4 · Tablón de Anuncios con Flask · Application Factory, Blueprints, SQLite y Bootstrap
+</div>
+
+</body>
+</html>

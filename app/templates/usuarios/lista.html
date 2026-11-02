@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block titulo %}Usuarios{% endblock %}
+
+{% block contenido %}
+<section class="encabezado-pagina">
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Usuarios</li>
+                    </ol>
+                </nav>
+                <h1 class="h2 fw-bold mb-1">Administración de usuarios</h1>
+                <p class="text-secondary mb-0">Registra, consulta, modifica y elimina cuentas del sistema.</p>
+            </div>
+            <a href="{{ url_for('usuarios.crear') }}" class="btn btn-primary">
+                <i class="bi bi-person-plus me-2"></i>Nuevo usuario
+            </a>
+        </div>
+    </div>
+</section>
+
+<div class="container pb-5">
+    <div class="card filtros-card mb-4">
+        <div class="card-body p-3 p-lg-4">
+            <form method="get" action="{{ url_for('usuarios.lista') }}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-8">
+                        <label class="form-label small fw-semibold" for="q">Buscar usuario</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                            <input type="search" class="form-control" id="q" name="q" value="{{ busqueda }}" placeholder="Nombre, usuario o correo electrónico">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i>Buscar</button>
+                        <a href="{{ url_for('usuarios.lista') }}" class="btn btn-outline-secondary" title="Limpiar búsqueda"><i class="bi bi-arrow-counterclockwise"></i></a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card tabla-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Usuario</th>
+                        <th scope="col">Correo electrónico</th>
+                        <th scope="col">Rol</th>
+                        <th scope="col" class="text-center">Anuncios</th>
+                        <th scope="col">Registro</th>
+                        <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usuario in usuarios %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="avatar-tabla avatar-grande">{{ usuario.iniciales }}</span>
+                                <div>
+                                    <div class="fw-semibold">{{ usuario.nombre }}</div>
+                                    <small class="text-muted">@{{ usuario.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="small">{{ usuario.email }}</td>
+                        <td>
+                            {% if usuario.is_admin %}
+                            <span class="badge text-bg-primary">Administrador</span>
+                            {% else %}
+                            <span class="badge text-bg-light border">Usuario</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center"><span class="badge rounded-pill text-bg-light border">{{ usuario.anuncios|length }}</span></td>
+                        <td class="small text-secondary">{{ usuario.fecha_registro.strftime("%d/%m/%Y") }}</td>
+                        <td class="text-end text-nowrap">
+                            <a href="{{ url_for('usuarios.editar', usuario_id=usuario.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if usuario.id != current_user.id %}
+                            <form method="post" action="{{ url_for('usuarios.eliminar', usuario_id=usuario.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar al usuario {{ usuario.username }}?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar" {% if usuario.anuncios %}disabled{% endif %}>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-danger" title="No puedes eliminar tu propia cuenta" disabled>
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-secondary">
+                            <i class="bi bi-people fs-2 d-block mb-2"></i>
+                            No se encontraron usuarios.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

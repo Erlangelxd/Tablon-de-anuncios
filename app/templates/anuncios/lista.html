@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block titulo %}Anuncios{% endblock %}
+
+{% block contenido %}
+<section class="encabezado-pagina">
+    <div class="container py-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Anuncios</li>
+                    </ol>
+                </nav>
+                <h1 class="h2 fw-bold mb-1">Tablón de anuncios</h1>
+                <p class="text-secondary mb-0">Consulta y administra los comunicados institucionales.</p>
+            </div>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('anuncios.crear') }}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Nuevo anuncio
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<div class="container pb-5">
+    <div class="card filtros-card mb-4">
+        <div class="card-body p-3 p-lg-4">
+            <form method="get" action="{{ url_for('anuncios.lista') }}">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-5">
+                        <label class="form-label small fw-semibold" for="q">Buscar</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                            <input type="search" class="form-control" id="q" name="q" value="{{ busqueda }}" placeholder="Título o contenido del anuncio">
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <label class="form-label small fw-semibold" for="categoria">Categoría</label>
+                        <select class="form-select" id="categoria" name="categoria">
+                            <option value="">Todas</option>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}" {% if categoria_id == categoria.id %}selected{% endif %}>{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if current_user.is_authenticated %}
+                    <div class="col-sm-6 col-lg-2">
+                        <label class="form-label small fw-semibold" for="estado">Estado</label>
+                        <select class="form-select" id="estado" name="estado">
+                            <option value="activos" {% if estado == 'activos' %}selected{% endif %}>Activos</option>
+                            <option value="inactivos" {% if estado == 'inactivos' %}selected{% endif %}>Inactivos</option>
+                            <option value="todos" {% if estado == 'todos' %}selected{% endif %}>Todos</option>
+                        </select>
+                    </div>
+                    {% endif %}
+                    <div class="col-lg-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-grow-1">
+                            <i class="bi bi-funnel me-1"></i>Filtrar
+                        </button>
+                        <a href="{{ url_for('anuncios.lista') }}" class="btn btn-outline-secondary" title="Limpiar filtros">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="text-secondary small mb-0">
+            <i class="bi bi-collection me-1"></i>
+            {{ paginacion.total }} anuncio{% if paginacion.total != 1 %}s{% endif %} encontrado{% if paginacion.total != 1 %}s{% endif %}
+        </p>
+    </div>
+
+    {% if anuncios %}
+    <div class="card tabla-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th scope="col">Anuncio</th>
+                        <th scope="col">Categoría</th>
+                        <th scope="col">Autor</th>
+                        <th scope="col">Publicación</th>
+                        <th scope="col">Estado</th>
+                        <th scope="col" class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for anuncio in anuncios %}
+                    <tr>
+                        <td>
+                            <a href="{{ url_for('anuncios.detalle', anuncio_id=anuncio.id) }}" class="fw-semibold text-decoration-none d-block">
+                                {{ anuncio.titulo }}
+                            </a>
+                            <small class="text-muted">{{ anuncio.resumen|truncate(80) }}</small>
+                        </td>
+                        <td><span class="badge categoria-badge">{{ anuncio.categoria.nombre }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="avatar-tabla">{{ anuncio.autor.iniciales }}</span>
+                                <span class="small">{{ anuncio.autor.nombre }}</span>
+                            </div>
+                        </td>
+                        <td class="small text-secondary">{{ anuncio.fecha_publicacion.strftime("%d/%m/%Y") }}</td>
+                        <td>
+                            {% if anuncio.activo %}
+                            <span class="badge text-bg-success-subtle text-success-emphasis border border-success-subtle">Activo</span>
+                            {% else %}
+                            <span class="badge text-bg-secondary">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a href="{{ url_for('anuncios.detalle', anuncio_id=anuncio.id) }}" class="btn btn-sm btn-outline-primary" title="Ver detalle">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            {% if current_user.is_authenticated and (current_user.is_admin or anuncio.usuario_id == current_user.id) %}
+                            <a href="{{ url_for('anuncios.editar', anuncio_id=anuncio.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{{ url_for('anuncios.cambiar_estado', anuncio_id=anuncio.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-warning" title="{% if anuncio.activo %}Desactivar{% else %}Activar{% endif %}">
+                                    <i class="bi {% if anuncio.activo %}bi-pause-circle{% else %}bi-play-circle{% endif %}"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{{ url_for('anuncios.eliminar', anuncio_id=anuncio.id) }}" class="d-inline" onsubmit="return confirm('¿Eliminar el anuncio &quot;{{ anuncio.titulo }}&quot;?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if paginacion.pages > 1 %}
+    <nav class="mt-4" aria-label="Paginación de anuncios">
+        <ul class="pagination justify-content-center mb-0">
+            <li class="page-item {% if not paginacion.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('anuncios.lista', page=paginacion.prev_num or 1, **filtros) }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% for numero in paginacion.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+                {% if numero %}
+                <li class="page-item {% if numero == paginacion.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('anuncios.lista', page=numero, **filtros) }}">{{ numero }}</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not paginacion.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('anuncios.lista', page=paginacion.next_num or paginacion.pages, **filtros) }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="estado-vacio text-center">
+        <span class="icono-vacio"><i class="bi bi-megaphone"></i></span>
+        <h2 class="h4 mt-3">No hay anuncios para mostrar</h2>
+        <p class="text-secondary mb-3">No se encontraron resultados con los filtros seleccionados.</p>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('anuncios.crear') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Publicar el primer anuncio
+        </a>
+        {% else %}
+        <a href="{{ url_for('anuncios.lista') }}" class="btn btn-outline-primary">Ver todos los anuncios</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

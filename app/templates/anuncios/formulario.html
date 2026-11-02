@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ accion }}{% endblock %}
+
+{% block contenido %}
+<section class="encabezado-pagina">
+    <div class="container py-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('anuncios.lista') }}">Anuncios</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ accion }}</li>
+            </ol>
+        </nav>
+        <h1 class="h2 fw-bold mb-1">{{ accion }}</h1>
+        <p class="text-secondary mb-0">Completa la información del comunicado institucional.</p>
+    </div>
+</section>
+
+<div class="container pb-5">
+    {% if not categorias %}
+    <div class="alert alert-warning d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle"></i>
+        No existen categorías registradas. Solicita a un administrador que cree una antes de publicar anuncios.
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="card formulario-card">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-bold mb-3"><i class="bi bi-pencil-square me-2 text-primary"></i>Contenido del anuncio</h2>
+                        <div class="mb-3">
+                            <label class="form-label" for="titulo">Título <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="titulo" name="titulo" value="{{ datos.titulo }}" maxlength="150" placeholder="Escribe un título claro y descriptivo" required>
+                            <div class="form-text">Máximo 150 caracteres.</div>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label" for="contenido">Contenido <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="contenido" name="contenido" rows="10" placeholder="Describe el anuncio con todos los detalles necesarios..." required>{{ datos.contenido }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card formulario-card mb-4">
+                    <div class="card-body p-4">
+                        <h2 class="h5 fw-bold mb-3"><i class="bi bi-sliders me-2 text-primary"></i>Configuración</h2>
+                        <div class="mb-3">
+                            <label class="form-label" for="categoria_id">Categoría <span class="text-danger">*</span></label>
+                            <select class="form-select" id="categoria_id" name="categoria_id" required>
+                                <option value="">Selecciona una categoría</option>
+                                {% for categoria in categorias %}
+                                <option value="{{ categoria.id }}" {% if datos.categoria_id == categoria.id %}selected{% endif %}>{{ categoria.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="activo" name="activo" {% if datos.activo %}checked{% endif %}>
+                            <label class="form-check-label" for="activo">Anuncio activo</label>
+                        </div>
+                        <div class="form-text">Los anuncios inactivos no se muestran al público.</div>
+                    </div>
+                </div>
+
+                {% if anuncio %}
+                <div class="card formulario-card mb-4">
+                    <div class="card-body p-4 small text-secondary">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="avatar-tabla">{{ anuncio.autor.iniciales }}</span>
+                            <div>
+                                <div class="fw-semibold text-dark">{{ anuncio.autor.nombre }}</div>
+                                <div>@{{ anuncio.autor.username }}</div>
+                            </div>
+                        </div>
+                        <div><i class="bi bi-calendar3 me-2"></i>Publicado el {{ anuncio.fecha_publicacion.strftime("%d/%m/%Y a las %H:%M") }}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg" {% if not categorias %}disabled{% endif %}>
+                        <i class="bi bi-check2-circle me-2"></i>{{ accion }}
+                    </button>
+                    <a href="{% if anuncio %}{{ url_for('anuncios.detalle', anuncio_id=anuncio.id) }}{% else %}{{ url_for('anuncios.lista') }}{% endif %}" class="btn btn-outline-secondary">
+                        Cancelar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block titulo %}{{ accion }}{% endblock %}
+
+{% block contenido %}
+<section class="encabezado-pagina">
+    <div class="container py-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-2">
+                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Inicio</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('categorias.lista') }}">Categorías</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ accion }}</li>
+            </ol>
+        </nav>
+        <h1 class="h2 fw-bold mb-1">{{ accion }}</h1>
+        <p class="text-secondary mb-0">Define el nombre y la descripción de la categoría.</p>
+    </div>
+</section>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card formulario-card">
+                <div class="card-body p-4 p-lg-5">
+                    <form method="post" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label" for="nombre">Nombre de la categoría <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ datos.nombre }}" maxlength="80" placeholder="Ej. Académico" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label" for="descripcion">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="4" maxlength="255" placeholder="Describe el tipo de anuncios que pertenecen a esta categoría...">{{ datos.descripcion }}</textarea>
+                        </div>
+                        <div class="d-flex flex-column flex-sm-row gap-2 pt-3 border-top">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle me-2"></i>{{ accion }}
+                            </button>
+                            <a href="{{ url_for('categorias.lista') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
